@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title></title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    body {
+      display: grid;
+      place-items: center;
+      background: #f3f5f8;
+      overflow: hidden;
+    }
+
+    .cube {
+      width: min(52vw, 220px);
+      aspect-ratio: 1;
+      position: relative;
+      background: #ffffff;
+      border: 4px solid #172033;
+      border-radius: 34px;
+      box-shadow:
+        inset 0 -8px 0 rgba(23, 32, 51, 0.07),
+        0 16px 28px rgba(23, 32, 51, 0.18);
+      cursor: pointer;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+      transform: rotate(0deg) scale(1);
+      transition: transform 160ms ease;
+    }
+
+    .cube.bump {
+      transform: rotate(10deg) scale(0.92);
+    }
+
+    .spot {
+      width: 17%;
+      aspect-ratio: 1;
+      border-radius: 50%;
+      background: #172033;
+      position: absolute;
+      opacity: 0;
+      transform: scale(0.65);
+      transition: opacity 110ms ease, transform 110ms ease;
+    }
+
+    .spot.on {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    .p1 { top: 13%; left: 13%; }
+    .p2 { top: 13%; left: 50%; translate: -50% 0; }
+    .p3 { top: 13%; right: 13%; }
+    .p4 { top: 50%; left: 13%; translate: 0 -50%; }
+    .p5 { top: 50%; left: 50%; translate: -50% -50%; }
+    .p6 { top: 50%; right: 13%; translate: 0 -50%; }
+    .p7 { bottom: 13%; left: 13%; }
+    .p8 { bottom: 13%; left: 50%; translate: -50% 0; }
+    .p9 { bottom: 13%; right: 13%; }
+
+    @media (prefers-reduced-motion: reduce) {
+      .cube,
+      .spot {
+        transition: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="cube" id="cube" role="button" tabindex="0" aria-label="">
+    <span class="spot p1"></span>
+    <span class="spot p2"></span>
+    <span class="spot p3"></span>
+    <span class="spot p4"></span>
+    <span class="spot p5 on"></span>
+    <span class="spot p6"></span>
+    <span class="spot p7"></span>
+    <span class="spot p8"></span>
+    <span class="spot p9"></span>
+  </div>
+
+  <script>
+    const cube = document.getElementById("cube");
+    const spots = [...document.querySelectorAll(".spot")];
+
+    const faces = {
+      1: [5],
+      2: [1, 9],
+      3: [1, 5, 9],
+      4: [1, 3, 7, 9],
+      5: [1, 3, 5, 7, 9],
+      6: [1, 3, 4, 6, 7, 9]
+    };
+
+    function fairNumber() {
+      const box = new Uint32Array(1);
+      const cap = 4294967292;
+      let value;
+
+      do {
+        crypto.getRandomValues(box);
+        value = box[0];
+      } while (value >= cap);
+
+      return (value % 6) + 1;
+    }
+
+    function paint(value) {
+      const active = faces[value];
+
+      spots.forEach((spot, index) => {
+        spot.classList.toggle("on", active.includes(index + 1));
+      });
+    }
+
+    function trigger() {
+      cube.classList.remove("bump");
+      void cube.offsetWidth;
+      cube.classList.add("bump");
+
+      const value = fairNumber();
+
+      setTimeout(() => {
+        paint(value);
+        cube.classList.remove("bump");
+      }, 100);
+    }
+
+    cube.addEventListener("click", trigger);
+
+    cube.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        trigger();
+      }
+    });
+  </script>
+</body>
+</html>
